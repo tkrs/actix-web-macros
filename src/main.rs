@@ -42,7 +42,7 @@ struct Event {
 
 fn capture_event(evt: Json<Event>) -> impl Responder {
     println!("{:?}", evt);
-    "captured"
+    Json("captured")
 }
 
 fn greet(name: Path<String>) -> impl Responder {
