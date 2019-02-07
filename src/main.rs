@@ -1,17 +1,17 @@
 #[macro_use]
 extern crate serde_derive;
 
-use actix_web::{server, App, middleware::Logger, Responder, http::Method, Json, Path};
+use actix_web::{http::Method, middleware::Logger, server, App, Json, Path, Responder};
 
 #[macro_use]
 mod macros {
     macro_rules! app_new {
-        ($( $p:tt => $rest:tt )*) => {
-            app_new!(App::new(); ; $( $p => $rest )*)
+        ($( $path:tt => $rest:tt )*) => {
+            app_new!(App::new(); ; $( $path => $rest )*)
         };
 
         (
-            $($middleware:expr),*;
+            $( $middleware:expr ),*;
             $( $p:tt => $rest:tt )*
         ) => {
             app_new!(App::new(); $( $middleware )*; $( $p => $rest )*)
@@ -19,7 +19,7 @@ mod macros {
 
         (
             $app:expr;
-            $($middleware:expr),*;
+            $( $middleware:expr ),*;
             $( $path:tt => [
                 $( $func:ident ($method:path, $handler:expr) )*
             ] )*
@@ -51,17 +51,21 @@ fn greet(name: Path<String>) -> impl Responder {
 
 fn main() {
     env_logger::init();
-    let app = || app_new!(
-        Logger::default();
-        "/event" => [
-            with(Method::POST, capture_event)
-        ]
-        "/greet/{name}" => [
-            with(Method::GET, greet)
-        ]
-    );
+    let app = || {
+        app_new!(
+            Logger::default();
+            "/event" => [
+                with(Method::POST, capture_event)
+            ]
+            "/greet/{name}" => [
+                with(Method::GET, greet)
+            ]
+        )
+    };
 
     let srv = server::new(app);
 
-    srv.bind("127.0.0.1:3000").expect("Unable to start server").run();
+    srv.bind("127.0.0.1:3000")
+        .expect("Unable to start server")
+        .run();
 }
