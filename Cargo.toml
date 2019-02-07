@@ -5,3 +5,8 @@ authors = ["Takeru Sato <type.in.type@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+actix-web = "0.7"
+env_logger = "0.6"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
