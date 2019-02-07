@@ -2,8 +2,8 @@
 extern crate serde_derive;
 
 use actix_web::{
-    http::Method, middleware::DefaultHeaders, middleware::Logger, server, App, Json, Path,
-    Responder, State,
+    http::Method, middleware::DefaultHeaders, middleware::Logger, server, App, HttpRequest, Json,
+    Path, Responder, State,
 };
 
 #[macro_use]
@@ -75,6 +75,10 @@ fn greet(state: State<MyApp>, name: Path<String>) -> impl Responder {
     format!("Hello {}!", name)
 }
 
+fn ping<S>(_req: &HttpRequest<S>) -> impl Responder {
+    "pong"
+}
+
 fn main() {
     env_logger::init();
 
@@ -84,6 +88,9 @@ fn main() {
 
             Logger::default(), DefaultHeaders::new().header("X-Version", "0.1");
 
+            "/ping" => [
+                f(Method::GET, ping)
+            ]
             "/event" => [
                 with(Method::POST, capture_event)
             ]
