@@ -6,12 +6,26 @@ use actix_web::{server, App, middleware::Logger, Responder, http::Method, Json, 
 #[macro_use]
 mod macros {
     macro_rules! app_new {
+        ($( $p:tt => $rest:tt )*) => {
+            app_new!(App::new(); ; $( $p => $rest )*)
+        };
+
         (
+            $($middleware:expr),*;
+            $( $p:tt => $rest:tt )*
+        ) => {
+            app_new!(App::new(); $( $middleware )*; $( $p => $rest )*)
+        };
+
+        (
+            $app:expr;
+            $($middleware:expr),*;
             $( $path:tt => [
                 $( $func:ident ($method:path, $handler:expr) )*
             ] )*
         ) => {
-            App::new().middleware(Logger::default())
+            $app
+            $(.middleware($middleware))*
             $(.resource($path, |r| {
                 $(r.method($method).$func($handler);)*
             }))*
@@ -38,6 +52,7 @@ fn greet(name: Path<String>) -> impl Responder {
 fn main() {
     env_logger::init();
     let app = || app_new!(
+        Logger::default();
         "/event" => [
             with(Method::POST, capture_event)
         ]
