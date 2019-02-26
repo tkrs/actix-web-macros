@@ -23,14 +23,14 @@ mod macros {
         (
             $app:expr;
             $( $middleware:expr ),*;
-            $( $path:tt => [
-                $( $func:ident ($method:path, $handler:expr) )*
-            ] )*
+            $( $path:tt => {
+                $( $method:ident : $func:ident ($handler:expr) )*
+            } )*
         ) => {
             $app
             $(.middleware($middleware))*
             $(.resource($path, |r| {
-                $(r.method($method).$func($handler);)*
+                $(r.method(Method::$method).$func($handler);)*
             }))*
         };
     }
@@ -88,15 +88,15 @@ fn main() {
 
             Logger::default(), DefaultHeaders::new().header("X-Version", "0.1");
 
-            "/ping" => [
-                f(Method::GET, ping)
-            ]
-            "/event" => [
-                with(Method::POST, capture_event)
-            ]
-            "/greet/{name}" => [
-                with(Method::GET, greet)
-            ]
+            "/ping" => {
+                GET: f(ping)
+            }
+            "/event" => {
+                POST: with(capture_event)
+            }
+            "/greet/{name}" => {
+                GET: with(greet)
+            }
         )
     };
 
